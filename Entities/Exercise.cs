@@ -9,7 +9,7 @@ public class Exercise
 
     public Guid SessionId { get; set; }
 
-    [ForeignKey("SessionId")] public Session Session { get; set; }
+    [ForeignKey("SessionId")] public Session Session { get; set; } = null!;
 
     [Required] [MaxLength(30)] public string Name { get; set; } = string.Empty;
 

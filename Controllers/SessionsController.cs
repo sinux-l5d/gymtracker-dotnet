@@ -22,11 +22,10 @@ public class SessionsController : ControllerBase
 
     // GET: api/session
     [HttpGet]
-    public ActionResult<List<SessionDto>> Get()
+    public ActionResult<IEnumerable<SessionDto>> Get()
     {
         var sessions = _sessionRepo.GetAllSessions();
-        //return Ok(_mapper.Map<IEnumerable<SessionDto>>(sessions));
-        return Ok(_mapper.Map<List<SessionDto>>(sessions));
+        return Ok(_mapper.Map<IEnumerable<SessionDto>>(sessions));
     }
 
     // GET: api/session/5
