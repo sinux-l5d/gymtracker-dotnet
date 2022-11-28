@@ -2,7 +2,7 @@ using GymTracker.Entities;
 
 namespace GymTracker.Services;
 
-// Development purpose, temporary
+// Development purpose
 public class InMemorySessionRepo : ISessionRepo
 {
     private readonly IList<Session> _sessions;
@@ -48,6 +48,11 @@ public class InMemorySessionRepo : ISessionRepo
     public Exercise? GetExerciseById(Guid id)
     {
         return GetAllExercises().FirstOrDefault(e => e.Id == id);
+    }
+
+    public IEnumerable<Exercise> GetExercisesBySessionId(Guid id)
+    {
+        return GetAllExercises().Where(e => e.SessionId == id);
     }
 
     public IEnumerable<string> GetAllExerciseNames()

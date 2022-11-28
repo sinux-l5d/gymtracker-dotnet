@@ -1,26 +1,25 @@
 using GymTracker.Data;
 using GymTracker.Entities;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 
 namespace GymTracker.Services;
 
 public class SessionRepo : ISessionRepo
 {
     private readonly DataContext _context;
-    private readonly ILogger<SessionRepo> _logger;
 
-    public SessionRepo(DataContext context, ILogger<SessionRepo> logger)
+    public SessionRepo(DataContext context)
     {
-        _logger = logger;
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     public IEnumerable<Session> GetAllSessions()
     {
-        // Log the call
-        _logger.LogInformation("Getting all sessions");
-
-        return _context.Sessions.ToList();
+        // Sessions with exercises. The Exercice contains the sessionId it is attached to
+        return _context.Sessions
+            .Include(s => s.Exercises)
+            .ToList();
     }
 
     public Session? GetSessionById(Guid id)
@@ -30,27 +29,32 @@ public class SessionRepo : ISessionRepo
 
     public bool SessionExists(Guid id)
     {
-        throw new NotImplementedException();
+        return _context.Sessions.Any(s => s.Id == id);
     }
 
     public IEnumerable<Exercise> GetAllExercises()
     {
-        throw new NotImplementedException();
+        return _context.Exercises.ToList();
     }
 
     public Exercise? GetExerciseById(Guid id)
     {
-        throw new NotImplementedException();
+        return _context.Exercises.FirstOrDefault(e => e.Id == id);
+    }
+
+    public IEnumerable<Exercise> GetExercisesBySessionId(Guid id)
+    {
+        return _context.Exercises.Where(e => e.SessionId == id).ToList();
     }
 
     public IEnumerable<string> GetAllExerciseNames()
     {
-        throw new NotImplementedException();
+        return _context.Exercises.Select(e => e.Name).ToList();
     }
 
     public bool ExerciseExists(Guid id)
     {
-        throw new NotImplementedException();
+        return _context.Exercises.Any(e => e.Id == id);
     }
 
     public void CreateSession(Session session)
@@ -62,12 +66,26 @@ public class SessionRepo : ISessionRepo
 
     public void AddExerciseToSession(Guid sessionId, Exercise exercise)
     {
-        throw new NotImplementedException();
+        exercise.Id = Guid.NewGuid();
+        exercise.SessionId = sessionId;
+        _context.Exercises.Add(exercise);
+        //_context.Sessions.FirstOrDefault(s => s.Id == sessionId)?.Exercises.Add(exercise);
+        _context.SaveChanges();
     }
 
+    // The parameters doesn't have every data
+    // We should update only the data that is provided
     public void UpdateSession(Session session)
     {
-        throw new NotImplementedException();
+        var sessionDb = _context.Sessions.FirstOrDefault(s => s.Id == session.Id);
+        if (sessionDb == null) return;
+
+        sessionDb.Name = session.Name;
+        sessionDb.Location = session.Location;
+        sessionDb.StartAt = session.StartAt;
+        sessionDb.EndAt = session.EndAt;
+
+        _context.SaveChanges();
     }
 
     public void UpdateExerciseInSession(Guid sessionId, Exercise exercise)

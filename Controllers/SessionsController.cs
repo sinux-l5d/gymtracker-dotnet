@@ -2,6 +2,7 @@ using AutoMapper;
 using GymTracker.Dto;
 using GymTracker.Entities;
 using GymTracker.Services;
+using NuGet.Protocol;
 
 namespace GymTracker.Controllers;
 
@@ -38,6 +39,7 @@ public class SessionsController : ControllerBase
     }
 
     // POST: api/session
+    // @todo return url to new resource
     [HttpPost]
     public IActionResult Post(Session session)
     {
@@ -54,11 +56,51 @@ public class SessionsController : ControllerBase
         return Ok();
     }
 
-    // PUT: api/Session/5
-    // [HttpPut("{id}")]
-    // public void Put(int id, [FromBody] string value)
-    // {
-    // }
+    [HttpPost("{id}/exercise")]
+    public IActionResult AddExercise(Guid id, AddExerciseDto exerciseDto)
+    {
+        var exercise = _mapper.Map<Exercise>(exerciseDto);
+        try
+        {
+            _sessionRepo.AddExerciseToSession(id, exercise);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return BadRequest();
+        }
+
+        return Ok();
+    }
+
+    [HttpGet("{id}/exercise")]
+    public ActionResult<IEnumerable<ExerciseDto>> GetExercises(Guid id)
+    {
+        var exercises = _sessionRepo.GetExercisesBySessionId(id);
+        return Ok(_mapper.Map<IEnumerable<ExerciseDto>>(exercises));
+    }
+
+    //PATCH: api/Session/5
+    [HttpPatch("{id}")]
+    public void Patch(Guid id, UpdateSessionDto updateSessionDto)
+    {
+        var sessionDb = _sessionRepo.GetSessionById(id);
+        if (sessionDb == null) return;
+
+        // Automapper need at least StartAt and Duration to map to a Session
+        updateSessionDto.Name ??= sessionDb.Name;
+        updateSessionDto.Location ??= sessionDb.Location;
+        updateSessionDto.StartAt ??= sessionDb.StartAt;
+        updateSessionDto.Duration ??= sessionDb.EndAt - sessionDb.StartAt;
+
+        Console.WriteLine("===================================");
+        Console.WriteLine("sessionDb: " + sessionDb.ToJson());
+        Console.WriteLine("===================================");
+        var session = _mapper.Map<Session>(updateSessionDto);
+        session.Id = id;
+        _sessionRepo.UpdateSession(session);
+    }
+
 
     // DELETE: api/Session/5
     // [HttpDelete("{id}")]

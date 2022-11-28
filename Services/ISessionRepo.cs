@@ -8,9 +8,10 @@ public interface ISessionRepo
     IEnumerable<Session> GetAllSessions();
     Session? GetSessionById(Guid id);
     bool SessionExists(Guid id);
-    
+
     IEnumerable<Exercise> GetAllExercises();
     Exercise? GetExerciseById(Guid id);
+    IEnumerable<Exercise> GetExercisesBySessionId(Guid id);
     IEnumerable<string> GetAllExerciseNames();
     bool ExerciseExists(Guid id);
 

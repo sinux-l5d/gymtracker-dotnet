@@ -9,6 +9,6 @@ public class DataContext : DbContext
     {
     }
 
-    public DbSet<Session> Sessions { get; set; }
-    public DbSet<Exercise> Exercises { get; set; }
+    public DbSet<Session> Sessions { get; set; } = null!;
+    public DbSet<Exercise> Exercises { get; set; } = null!;
 }
