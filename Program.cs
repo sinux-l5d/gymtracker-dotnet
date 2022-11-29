@@ -21,7 +21,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opts => { opts.SupportNonNullableReferenceTypes(); });
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // This provide a instance of InMemorySessionRepo to every controller that needs ISessionRepo
