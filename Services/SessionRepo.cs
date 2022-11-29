@@ -1,5 +1,6 @@
 using GymTracker.Data;
 using GymTracker.Entities;
+using GymTracker.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol;
 
@@ -57,11 +58,12 @@ public class SessionRepo : ISessionRepo
         return _context.Exercises.Any(e => e.Id == id);
     }
 
-    public void CreateSession(Session session)
+    public Session CreateSession(Session session)
     {
         session.Id = Guid.NewGuid();
-        _context.Sessions.Add(session);
+        var sessionDb = _context.Sessions.Add(session);
         _context.SaveChanges();
+        return sessionDb.Entity;
     }
 
     public void AddExerciseToSession(Guid sessionId, Exercise exercise)
@@ -73,12 +75,11 @@ public class SessionRepo : ISessionRepo
         _context.SaveChanges();
     }
 
-    // The parameters doesn't have every data
-    // We should update only the data that is provided
     public void UpdateSession(Session session)
     {
         var sessionDb = _context.Sessions.FirstOrDefault(s => s.Id == session.Id);
-        if (sessionDb == null) return;
+        // Session not found
+        if (sessionDb == null) throw new SessionNotFoundException(session.Id);
 
         sessionDb.Name = session.Name;
         sessionDb.Location = session.Location;
@@ -90,16 +91,47 @@ public class SessionRepo : ISessionRepo
 
     public void UpdateExerciseInSession(Guid sessionId, Exercise exercise)
     {
-        throw new NotImplementedException();
+        var sessionDb = _context.Sessions.FirstOrDefault(s => s.Id == sessionId);
+        if (sessionDb == null) throw new SessionNotFoundException(sessionId);
+
+        var exerciseDb = _context.Exercises.FirstOrDefault(e => e.Id == exercise.Id);
+        if (exerciseDb == null) throw new ExerciseNotFoundException(exercise.Id);
+
+        // check exercise is in session
+        if (exerciseDb.SessionId != sessionId) throw new ExerciseNotInSessionException(exercise.Id, sessionId);
+
+        exerciseDb.Name = exercise.Name;
+        exerciseDb.Description = exercise.Description;
+        exerciseDb.Repetitions = exercise.Repetitions;
+
+        _context.SaveChanges();
     }
 
     public void DeleteSession(Guid id)
     {
-        throw new NotImplementedException();
+        var sessionDb = _context.Sessions.FirstOrDefault(s => s.Id == id);
+        if (sessionDb == null) throw new SessionNotFoundException(id);
+
+        _context.Sessions.Remove(sessionDb);
+
+        var exercises = _context.Exercises.Where(e => e.SessionId == id);
+        _context.Exercises.RemoveRange(exercises);
+
+        _context.SaveChanges();
     }
 
     public void DeleteExerciseFromSession(Guid sessionId, Guid exerciseId)
     {
-        throw new NotImplementedException();
+        var sessionDb = _context.Sessions.FirstOrDefault(s => s.Id == sessionId);
+        if (sessionDb == null) throw new SessionNotFoundException(sessionId);
+
+        var exerciseDb = _context.Exercises.FirstOrDefault(e => e.Id == exerciseId);
+        if (exerciseDb == null) throw new ExerciseNotFoundException(exerciseId);
+
+        // check exercise is in session
+        if (exerciseDb.SessionId != sessionId) throw new ExerciseNotInSessionException(exerciseId, sessionId);
+
+        _context.Exercises.Remove(exerciseDb);
+        _context.SaveChanges();
     }
 }
