@@ -4,6 +4,9 @@
 # default value for base-name is "SOA-CA2"
 # default value for aws-keypair-name is "MAIN_KEY"
 
+C="\033[1;32m"
+R="\033[0m"
+
 # usage function
 usage() {
     echo "usage: launch.sh <base-name> <aws-keypair-name>"
@@ -25,6 +28,23 @@ BASE_NAME=${1:-SOA-CA2}
 AWS_KEYPAIR_NAME=${2:-MAIN_KEY}
 
 STACK_NAME="${BASE_NAME}-Stack"
+
+# check if stack exists with list-stacks and jq
+STACK_EXISTS=$(aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --query "StackSummaries[?StackName=='$STACK_NAME'].StackName" --output text)
+
+echo "Stack exists: $STACK_EXISTS"
+
+# Ask confirmation
+echo -e "This will create a stack named $C${STACK_NAME}$R in AWS."
+echo -e "It will use the keypair named $C${AWS_KEYPAIR_NAME}$R."
+
+read -p "Are you sure? (y/N) " -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
 
 spinner()
 {
@@ -50,7 +70,7 @@ STACK_ARN=$(aws cloudformation create-stack \
   | jq -r '.StackId')
 
 # trim and store
-echo "$STACK_ARN" | xargs >> "./stack_arn.txt"
+echo "$STACK_ARN" | xargs > "./stack_arn.txt"
 
 echo -n "Waiting for stack to be created "
 aws cloudformation wait stack-create-complete --stack-name $STACK_ARN & spinner $!
