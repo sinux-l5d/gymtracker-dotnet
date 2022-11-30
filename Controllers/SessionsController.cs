@@ -73,9 +73,10 @@ public class SessionsController : ControllerBase
     public IActionResult AddExercise(Guid id, AddExerciseDto exerciseDto)
     {
         var exercise = _mapper.Map<Exercise>(exerciseDto);
+        Exercise exerciseDb;
         try
         {
-            _sessionRepo.AddExerciseToSession(id, exercise);
+            exerciseDb = _sessionRepo.AddExerciseToSession(id, exercise);
         }
         catch (Exception ex)
         {
@@ -83,7 +84,7 @@ public class SessionsController : ControllerBase
             return BadRequest();
         }
 
-        return CreatedAtAction(nameof(Get), new { id }, null);
+        return CreatedAtAction(nameof(GetExercise), new { id, exerciseId = exerciseDb.Id }, null);
     }
 
     [HttpGet("{id}/exercises")]

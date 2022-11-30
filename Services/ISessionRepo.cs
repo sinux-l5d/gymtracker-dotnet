@@ -18,7 +18,7 @@ public interface ISessionRepo
 
     // Create
     Session CreateSession(Session session);
-    void AddExerciseToSession(Guid sessionId, Exercise exercise);
+    Exercise AddExerciseToSession(Guid sessionId, Exercise exercise);
 
     // Update
 

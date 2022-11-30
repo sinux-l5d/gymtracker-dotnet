@@ -66,13 +66,14 @@ public class SessionRepo : ISessionRepo
         return sessionDb.Entity;
     }
 
-    public void AddExerciseToSession(Guid sessionId, Exercise exercise)
+    public Exercise AddExerciseToSession(Guid sessionId, Exercise exercise)
     {
         exercise.Id = Guid.NewGuid();
         exercise.SessionId = sessionId;
         _context.Exercises.Add(exercise);
         //_context.Sessions.FirstOrDefault(s => s.Id == sessionId)?.Exercises.Add(exercise);
         _context.SaveChanges();
+        return exercise;
     }
 
     public void UpdateSession(Session session)
