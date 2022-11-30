@@ -33,6 +33,13 @@ if [ -z "$STACK_ARN" ]; then
 fi
 
 echo -e "This will delete the stack $C${STACK_ARN}$R in AWS."
+read -p "Are you sure? (y/N) " -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
 
 spinner()
 {
