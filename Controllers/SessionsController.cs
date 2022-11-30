@@ -40,7 +40,6 @@ public class SessionsController : ControllerBase
     }
 
     // POST: api/session
-    // @todo return url to new resource
     [HttpPost]
     public ActionResult<SessionDto> Post(AddSessionDto addSessionDto)
     {
@@ -51,8 +50,7 @@ public class SessionsController : ControllerBase
         }
         catch (AutoMapperMappingException e)
         {
-            //return BadRequest(new { error = "Must specify at least name, location and endAt or duration" });
-            return BadRequest(e.Message);
+            return BadRequest(new { error = "Must specify at least name, location and endAt or duration" });
         }
 
         Session sessionDb;
@@ -70,7 +68,7 @@ public class SessionsController : ControllerBase
     }
 
     [HttpPost("{id}/exercises")]
-    public IActionResult AddExercise(Guid id, AddExerciseDto exerciseDto)
+    public ActionResult<ExerciseDto> AddExercise(Guid id, AddExerciseDto exerciseDto)
     {
         var exercise = _mapper.Map<Exercise>(exerciseDto);
         Exercise exerciseDb;
@@ -84,7 +82,8 @@ public class SessionsController : ControllerBase
             return BadRequest();
         }
 
-        return CreatedAtAction(nameof(GetExercise), new { id, exerciseId = exerciseDb.Id }, null);
+        return CreatedAtAction(nameof(GetExercise), new { id, exerciseId = exerciseDb.Id },
+            _mapper.Map<ExerciseDto>(exerciseDb));
     }
 
     [HttpGet("{id}/exercises")]
